@@ -1,5 +1,21 @@
 # Changelog / 更新记录
 
+## v0.3.1-rc1 — Kindle activity and resume fix / Kindle 活动计时与唤醒恢复修复
+
+- Removed the direct pause of KOReader AutoSuspend during WordScreen playback.
+- Timed page transitions now execute KOReader's InputEvent activity hook so AutoSuspend's last-action time and Kindle T1 reset logic remain synchronized.
+- WordScreen no longer changes Kindle powerd `preventScreenSaver` or KeepAlive state.
+- Playback position and A/B face are retained across a device suspend; playback is scheduled to resume after KOReader restores the reader view.
+- This is a release candidate and still requires physical Kindle PW1 testing. No 8-hour stability claim is made yet.
+
+- 移除播放期间直接暂停 KOReader AutoSuspend 的做法。
+- 定时翻页时触发 KOReader 的 InputEvent 活动钩子，使 AutoSuspend 的最后活动时间与 Kindle T1 计时保持同步。
+- WordScreen 不再修改 Kindle powerd 的 `preventScreenSaver` 或 KeepAlive 状态。
+- 设备休眠前保存播放位置和 A/B 页面状态，唤醒并恢复阅读界面后尝试自动续播。
+- 本版本为候选测试版，仍需 Kindle PW1 实机验收，暂不宣称已通过 8 小时稳定性测试。
+
+---
+
 ## 2026-11-06 — public repository preparation / 公开仓库准备
 
 - Declared the WordScreen project license as GNU AGPL v3.0-or-later (`AGPL-3.0-or-later`).
