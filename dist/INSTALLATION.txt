@@ -1,0 +1,23 @@
+Copyright (C) 2026 qiancy8888
+WordScreen for KOReader v0.3.0 preview — install package
+
+简体中文：
+1. 停止 WordScreen，完全退出 KOReader。
+2. 通过 USB 连接 Kindle，并备份现有 koreader/plugins/wordscreen.koplugin/ 文件夹。
+3. 将压缩包内 koreader/ 文件夹复制到 Kindle USB 根目录，允许合并/覆盖。
+4. 安全弹出 Kindle，重新启动 KOReader。
+5. 打开符合每词两页格式的 PDF，在工具/更多工具中找到 WordScreen。
+6. 首次测试请关闭 KOReader 内置 AutoTurn。
+
+English:
+1. Stop WordScreen and completely exit KOReader.
+2. Connect the Kindle by USB and back up the existing koreader/plugins/wordscreen.koplugin/ folder.
+3. Copy the koreader/ folder from this archive to the Kindle USB root; merge/overwrite the plugin files.
+4. Safely eject the Kindle and restart KOReader.
+5. Open a PDF following the two-pages-per-word format and find WordScreen in Tools / More tools.
+6. Disable KOReader's built-in AutoTurn for the first test.
+
+This is a preview package. The v0.3.0 resume and native-home launch path require real-device verification.
+Do not delete koreader/settings/wordscreen_koreader.lua when updating; it stores favorites and resume settings.
+
+License: GNU AGPL v3.0 or later (AGPL-3.0-or-later). The full LICENSE text is included in this archive.
