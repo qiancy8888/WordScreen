@@ -5,5 +5,5 @@ return {
     name = "wordscreen",
     fullname = _("WordScreen – PDF Vocabulary"),
     description = _("Two-page PDF vocabulary player with favorites and one-tap resume."),
-    version = "0.3.0",
+    version = "0.3.1-rc1",
 }
