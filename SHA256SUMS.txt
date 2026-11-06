@@ -1,4 +1,3 @@
 6b27f310297b47b852afbc87de0826b78ff2415bed9a9e8bfa4bfb9dec2de38e  koreader/plugins/wordscreen.koplugin/main.lua
 7be03a4f2a77ab2b02cad3722469f1723c380eb4d0e2090be3459fe3916223c7  koreader/plugins/wordscreen.koplugin/_meta.lua
 6e0f6efa343ebc53c37a309547656bb36eacdb6aaa3fffa66024e7342ac339b1  koreader/plugins/wordscreen.koplugin/heartoverlay.lua
-fa04b5e0f360f0fff37e477442275a19600f9457a24f8079a56c64b4213f9734  dist/WordScreen-KOReader-v0.3.0-preview-install.zip
