@@ -8,7 +8,6 @@ local Event = require("ui/event")
 local DataStorage = require("datastorage")
 local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("luasettings")
-local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local HeartOverlay = require("heartoverlay")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -27,7 +26,9 @@ local WordScreen = WidgetContainer:extend{
     start_task = nil,
     current_file = nil,
     favorites_list = nil,
-    saved_suspend_value = nil,
+    resume_after_suspend = false,
+    suspend_resume_mode = nil,
+    suspend_resume_page = nil,
     touch_registered = false,
     heart_overlay_registered = false,
     auto_start_scheduled = false,
@@ -128,6 +129,16 @@ function WordScreen:configureQuickResume(enabled)
     self:notice(enabled and "Quick resume ENABLED for this PDF." or "Quick resume DISABLED.")
 end
 
+-- Notify KOReader's activity hooks when a timed page transition occurs.
+-- This refreshes AutoSuspend.last_action_time, allowing Kindle's T1 timer
+-- to keep resetting normally without disabling AutoSuspend or powerd.
+function WordScreen:markActivity()
+    local hook = UIManager.event_hook
+    if hook and hook.execute then
+        hook:execute("InputEvent")
+    end
+end
+
 function WordScreen:arm(seconds)
     UIManager:unschedule(self.task)
     if self.playing then UIManager:scheduleIn(seconds, self.task) end
@@ -172,6 +183,9 @@ function WordScreen:tick()
         self:arm(1)
         return
     end
+    -- A timed page flip is ongoing activity even though it is not a touch event.
+    -- Keep KOReader's normal AutoSuspend/T1 bookkeeping in sync with playback.
+    self:markActivity()
     if self.face == "A" then
         self.face = "B"
         self:drawCurrent()
@@ -181,16 +195,17 @@ function WordScreen:tick()
     end
 end
 
-function WordScreen:stop(silent)
+function WordScreen:stop(silent, preserve_suspend_resume)
     if self.task then UIManager:unschedule(self.task) end
     if self.start_task then UIManager:unschedule(self.start_task) end
     local was_playing = self.playing
     self.playing = false
     self.mode = nil
     self.favorites_list = nil
-    if self.saved_suspend_value ~= nil then
-        PluginShare.pause_auto_suspend = self.saved_suspend_value
-        self.saved_suspend_value = nil
+    if not preserve_suspend_resume then
+        self.resume_after_suspend = false
+        self.suspend_resume_mode = nil
+        self.suspend_resume_page = nil
     end
     if was_playing and not silent then
         self:notice("WordScreen paused. Your position was saved.")
@@ -239,8 +254,9 @@ function WordScreen:start(mode, resume_page)
     self.current_word = word
     self.face = (page % 2 == 0) and "B" or "A"
     self.playing = true
-    self.saved_suspend_value = PluginShare.pause_auto_suspend or false
-    PluginShare.pause_auto_suspend = true
+
+    -- Do not pause AutoSuspend or disable Kindle's screensaver.
+    -- markActivity() refreshes the normal activity/T1 timers during playback.
 
     -- The first explicit playback selects this as the one-tap WordScreen PDF.
     self.settings:saveSetting("quick_pdf", self.current_file)
@@ -373,16 +389,47 @@ end
 
 -- Normal exit stores the exact currently displayed PDF page once, not each turn.
 function WordScreen:onCloseDocument()
+    self.resume_after_suspend = false
+    self.suspend_resume_mode = nil
+    self.suspend_resume_page = nil
     self:saveProgress()
     self:stop(true)
 end
+
 function WordScreen:onCloseWidget()
+    self.resume_after_suspend = false
+    self.suspend_resume_mode = nil
+    self.suspend_resume_page = nil
     if self.playing then self:saveProgress() end
     self:stop(true)
 end
+
 function WordScreen:onSuspend()
-    if self.playing then self:saveProgress() end
-    self:stop(true)
+    if self.playing then
+        self.suspend_resume_mode = self.mode or "all"
+        self.suspend_resume_page = pageForWord(self.current_word, self.face)
+        self:saveProgress()
+        self.resume_after_suspend = true
+        -- Stop the playback timer while suspended, but retain a one-shot resume request.
+        self:stop(true, true)
+    end
+end
+
+function WordScreen:onResume()
+    if not self.resume_after_suspend then return end
+
+    local mode = self.suspend_resume_mode or "all"
+    local page = self.suspend_resume_page or self.settings:readSetting("resume_page", 1)
+    self.resume_after_suspend = false
+    self.suspend_resume_mode = nil
+    self.suspend_resume_page = nil
+
+    -- Let KOReader finish restoring the reader view before restarting playback.
+    UIManager:scheduleIn(1, function()
+        if self.ui and self.ui.document and self:isSupported() then
+            self:start(mode, page)
+        end
+    end)
 end
 
 function WordScreen:addToMainMenu(menu_items)

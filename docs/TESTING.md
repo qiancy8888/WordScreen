@@ -1,27 +1,28 @@
 # Testing status / 实机验收状态
 
-## 2026-11-07 — overnight-playback field report / 整夜播放现场反馈
+## 2026-11-07 — v0.3.1-rc1 overnight field report / v0.3.1-rc1 整夜实机反馈
 
-**Reported device / 设备：** Kindle Paperwhite 1 (PW1) running KOReader v2026.07.1.
+**Device / 设备：** Kindle Paperwhite 1 (PW1 / B024), firmware 5.6.1.1, KOReader v2026.07.1.
 
-**Owner report / 用户反馈：** A locally installed WordScreen **test build** was left running overnight and **did not enter the screensaver**. Earlier playback had displayed a screensaver after roughly one hour and become unresponsive.
+**Build provenance / 测试版本来源：** The maintainer supplied `WordScreen-fix-pw1-auto-suspend-2026-07-1.zip`; its v0.3.1-rc1 plugin source is now imported into this repository.
 
-**Provenance / 来源边界：** The actual test-build source/ZIP is **not yet available in this repository**. The checked-in `main.lua` remains the v0.3.0 preview implementation. This report is evidence for the behavior of the *local test build*, **not** a verified regression fix in the repository version.
+**Owner report / 用户反馈：** This exact build ran overnight and did not enter the Kindle screensaver. Earlier playback had entered the screensaver after roughly one hour and become unresponsive.
 
-**Still to validate / 待验收：** Continued page advancement for the full night; swipe/heart responsiveness at the end of the run; restoring default Kindle screen-saver behavior after STOP / KOReader exit; battery consumption; repeatability on a subsequent night.
+**Implementation / 修复机制：** Timed page transitions execute KOReader's `InputEvent` activity hook to refresh normal AutoSuspend / Kindle T1 activity bookkeeping. WordScreen does not directly pause AutoSuspend or modify Kindle powerd / KeepAlive.
 
-**Release gate / 发布前提：** Acquire the exact installed `wordscreen.koplugin` files or installation ZIP, compare them against v0.3.0, review power-management cleanup behavior, then perform a fresh hardware run before publishing `v0.3.1-beta`.
+**Still to validate / 待验收：** Repeatability over additional nights; swipe and heart responsiveness after long playback; normal screen-saver behavior after manual STOP / KOReader exit; battery consumption; exact A/B resume after an actual suspend event.
 
+**Release boundary / 发布边界：** This is an owner-reported overnight result on one PW1 / KOReader version combination, not a general compatibility guarantee. The release remains a release candidate until the remaining checks are completed.
 
 ## English
 
-This table separates owner-reported device observations from features present in the v0.3.0 source but not yet accepted on hardware.
+This table separates owner-reported device observations from features present in the v0.3.1-rc1 source but not yet accepted on hardware.
 
 | Item | Current status | Notes |
 |---|---|---|
 | KOReader starts on Kindle PW1 and opens PDF | Owner-reported pass | PW1 / B024, firmware 5.6.1.1 workflow |
 | WordScreen plugin menu appears | Owner-reported pass | Menu appeared after earlier plugin debugging |
-| Earlier WordScreen plugin became usable | Owner-reported pass | This does not certify every v0.3.0 feature |
+| Earlier WordScreen plugin became usable | Owner-reported pass | This does not certify every v0.3.1-rc1 feature |
 | Two-page A/B mapping | Implemented | Odd page A, even page B |
 | 4-second A/B playback | Implemented; re-test required | Default values in source; refresh latency may affect perceived timing |
 | Infinite all-word loop | Implemented; re-test required | Source wraps from last word to first |
@@ -29,9 +30,10 @@ This table separates owner-reported device observations from features present in
 | Left/right swipe navigation | Implemented; re-test required | Only intercepted while playback is active |
 | Top heart overlay drawing and touch | Packaged; hardware acceptance pending | Check title overlap and touch-zone conflicts |
 | Favorites survive KOReader restart | Implemented; hardware acceptance pending | Settings file is `wordscreen_koreader.lua` |
-| v0.3.0 exact-page resume | Preview implementation; not accepted | Test both A and B pages after normal stop, document close and KOReader restart |
+| v0.3.1-rc1 exact-page resume | Implemented; hardware acceptance pending | Test both A and B pages after normal stop, document close, KOReader restart and an actual suspend/resume |
 | Native Kindle-library PDF launch | External dependency; not accepted | Requires a compatible third-party launcher such as KPVBooklet |
-| Playback through Kindle system sleep/screensaver | Not guaranteed | Current suspend handler saves progress and stops playback |
+| Playback without Kindle screensaver | Owner-reported pass (one overnight run) | PW1 + KOReader v2026.07.1; repeatability, battery use and behavior after manual STOP still need checks |
+| AutoSuspend / Kindle T1 activity bookkeeping | Implemented in v0.3.1-rc1 | Timed page transitions execute KOReader's InputEvent activity hook; no direct powerd / KeepAlive override |
 | Other Kindle models / firmware | Not tested | Do not assume compatibility |
 
 ### Suggested PW1 acceptance sequence
@@ -49,13 +51,13 @@ This table separates owner-reported device observations from features present in
 
 ## 简体中文
 
-本表将维护者反馈的实机观察，与 v0.3.0 源码中已经实现但尚未在设备上验收的功能分开记录。
+本表将维护者反馈的实机观察，与 v0.3.1-rc1 源码中已经实现但尚未在设备上验收的功能分开记录。
 
 | 检查项 | 当前状态 | 说明 |
 |---|---|---|
 | Kindle PW1 上启动 KOReader 并打开 PDF | 维护者反馈通过 | PW1 / B024，固件 5.6.1.1 操作流程 |
 | WordScreen 插件菜单出现 | 维护者反馈通过 | 经过前期插件调试后菜单已出现 |
-| 早期 WordScreen 插件可以使用 | 维护者反馈通过 | 不代表 v0.3.0 的每项功能都已验收 |
+| 早期 WordScreen 插件可以使用 | 维护者反馈通过 | 不代表 v0.3.1-rc1 的每项功能都已验收 |
 | A/B 两页映射 | 已实现 | 奇数页 A，偶数页 B |
 | A/B 默认各 4 秒播放 | 已实现，需复测 | 源码默认值为 4 秒；屏幕刷新耗时会影响体感 |
 | 全部单词无限循环 | 已实现，需复测 | 源码在末词后回到第一个单词 |
@@ -63,9 +65,10 @@ This table separates owner-reported device observations from features present in
 | 左右滑动切换单词 | 已实现，需复测 | 仅在播放期间接管滑动手势 |
 | 顶部红心绘制与触控 | 已打包，实机触控待验收 | 检查标题遮挡和触控区域冲突 |
 | KOReader 重启后收藏保留 | 已实现，实机待验收 | 设置文件为 `wordscreen_koreader.lua` |
-| v0.3.0 精确页码续播 | 预览实现，尚未验收 | 分别测试 A 页、B 页在停止、关闭文档、重启 KOReader 后的恢复 |
+| v0.3.1-rc1 精确页码续播 | 已实现，实机验收待完成 | 分别测试 A 页、B 页在停止、关闭文档、重启 KOReader 及实际休眠唤醒后的恢复 |
 | Kindle 原生书库直接打开 PDF | 外部依赖，尚未验收 | 需要 KPVBooklet 等兼容的第三方启动组件 |
-| Kindle 系统休眠/屏保期间持续播放 | 不作保证 | 当前挂起处理会保存进度并停止播放 |
+| Kindle 屏保未触发 | 维护者反馈通过（一次整夜测试） | PW1 + KOReader v2026.07.1；仍需重复测试，并检查电池消耗及手动 STOP 后的正常休眠 |
+| AutoSuspend / Kindle T1 活动计时 | v0.3.1-rc1 已实现 | 定时翻页触发 KOReader InputEvent 活动钩子；不直接修改 powerd / KeepAlive |
 | 其他 Kindle 型号 / 固件 | 未测试 | 不应默认认为兼容 |
 
 ### PW1 建议验收顺序

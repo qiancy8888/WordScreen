@@ -6,7 +6,7 @@ Copyright (C) 2026 qiancy8888
 
 [简体中文](README.zh-CN.md) | [Installation](docs/INSTALLATION.md) | [PDF format](docs/PDF_FORMAT.md) | [Testing status](docs/TESTING.md) | [Changelog](CHANGELOG.md)
 
-> **Project status: preview / experimental.** The current source snapshot is v0.3.0. The plugin has been developed and used in a Kindle Paperwhite 1 (PW1) workflow, but the v0.3.0 quick-resume and native-library launch path still require device-level acceptance. Do not treat every listed feature as verified on every Kindle model.
+> **Project status: release candidate / experimental.** The current source snapshot is v0.3.1-rc1. The maintainer reports one overnight playback run on Kindle Paperwhite 1 (PW1) + KOReader v2026.07.1 without entering the screensaver. This is a single-device field report, not a guarantee for other models, firmware versions or usage conditions.
 
 ## What it does
 
@@ -25,7 +25,7 @@ The plugin advances between the two pages of each word, then moves to the next w
 - Left swipe for the next word; right swipe for the previous word while playback is active.
 - A small heart overlay near the top-right word-title area to favorite/unfavorite the current item.
 - Favorites stored locally in KOReader settings, keyed by PDF path and word index.
-- A v0.3.0 quick-resume implementation that stores the PDF page and attempts to resume the selected PDF when it is opened again.
+- A v0.3.1-rc1 quick-resume implementation that stores the exact PDF page/A-B face and attempts to resume after KOReader restores the reader view.
 - Optional native Kindle-library launch through a separately installed PDF-to-KOReader launcher such as KPVBooklet. The launcher is **not included** in this repository.
 
 ## Requirements
@@ -51,7 +51,7 @@ koreader/plugins/wordscreen.koplugin/
 
 The project owner's primary device is a Kindle Paperwhite 1 (PW1 / B024), firmware 5.6.1.1, with KOReader installed. KOReader was reported to launch and open PDFs on that device, and the WordScreen plugin menu was reported to appear and become usable in the earlier plugin iteration.
 
-The v0.3.0 quick-resume and native Kindle-library launch flow are a **preview implementation** and still require real-device verification. KPVBooklet is a separate project; its compatibility with a particular Kindle model and firmware must be checked independently. See [testing status](docs/TESTING.md).
+The v0.3.1-rc1 activity-timer handling and suspend/resume path have an owner-reported overnight test on PW1 + KOReader v2026.07.1. Exact-page resume, native Kindle-library launch and repeatability still require separate real-device verification. KPVBooklet is a separate project; its compatibility with a particular Kindle model and firmware must be checked independently. See [testing status](docs/TESTING.md).
 
 Other Kindle models and firmware versions are not yet declared compatible.
 
@@ -61,8 +61,9 @@ Other Kindle models and firmware versions are not yet declared compatible.
 - A PDF must not contain a cover, contents page, or extra page unless those pages are deliberately included in the two-page-per-word sequence.
 - Favorites are keyed by the PDF's file path and word number, not by the word text. Replacing a PDF at the same path with a different word order can make old favorites point to different words. Use a new filename for a substantially changed vocabulary list.
 - The heart overlay uses screen-relative coordinates. Leave clear space near the top-right title area in the PDF layout.
-- The plugin's request to pause KOReader auto-suspend is not a guarantee against Kindle system-level sleep or screensaver behavior.
-- When KOReader reports a suspend event, the current code saves progress and stops playback; continuous playback through device sleep is not promised.
+- During timed playback, each page transition sends KOReader's `InputEvent` activity hook so its normal AutoSuspend / Kindle T1 bookkeeping can stay synchronized. The plugin does not disable Kindle `powerd`, the system screensaver or KeepAlive.
+- If KOReader reports a suspend event, the plugin stores the exact A/B page and attempts to resume after the reader view is restored.
+- One overnight run on PW1 + KOReader v2026.07.1 was reported without screensaver activation. This is not a compatibility guarantee; manual-stop behavior, battery use and repeatability still need testing.
 
 ## Development
 

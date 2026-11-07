@@ -7,6 +7,7 @@
 - KOReader is already installed and can open PDF documents.
 - The vocabulary PDF follows the [two-pages-per-word format](PDF_FORMAT.md).
 - Disable KOReader's built-in AutoTurn before starting WordScreen.
+- v0.3.1-rc1 updates KOReader's activity bookkeeping on timed page turns; it does not force-disable the Kindle system screensaver or KeepAlive.
 
 This guide installs only the WordScreen plugin. It does not cover Kindle jailbreaking or installation of KOReader itself.
 
@@ -44,7 +45,7 @@ This guide installs only the WordScreen plugin. It does not cover Kindle jailbre
 
 ### Native Kindle home-screen shortcut (experimental)
 
-The plugin itself does not create a Kindle home-screen application icon. The v0.3.0 code can auto-resume the selected PDF after KOReader opens it. To open a PDF from the native Kindle library directly in KOReader, a separate compatible launcher such as KPVBooklet is required. That launcher is not included here and must be installed and tested separately for the exact Kindle model and firmware. If this path is not working, use the existing KUAL → KOReader route.
+The plugin itself does not create a Kindle home-screen application icon. The v0.3.1-rc1 code can auto-resume the selected PDF after KOReader opens it. To open a PDF from the native Kindle library directly in KOReader, a separate compatible launcher such as KPVBooklet is required. That launcher is not included here and must be installed and tested separately for the exact Kindle model and firmware. If this path is not working, use the existing KUAL → KOReader route.
 
 ### Roll back
 
@@ -60,6 +61,7 @@ The plugin itself does not create a Kindle home-screen application icon. The v0.
 - 已安装 KOReader，并能正常打开 PDF。
 - 单词本符合[每词两页的格式规范](PDF_FORMAT.md)。
 - 启动 WordScreen 前，关闭 KOReader 内置 AutoTurn 自动翻页。
+- v0.3.1-rc1 在定时翻页时更新 KOReader 的活动计时；不会强制关闭 Kindle 系统屏保或 KeepAlive。
 
 本指南只安装 WordScreen 插件，不包含 Kindle 越狱或 KOReader 主程序安装步骤。
 
@@ -97,7 +99,7 @@ The plugin itself does not create a Kindle home-screen application icon. The v0.
 
 ### Kindle 原生书库快捷入口（实验性）
 
-插件本身不会创建 Kindle 原生主界面的独立 App 图标。v0.3.0 代码可以在 KOReader 打开指定 PDF 后尝试自动恢复学习进度。若希望从 Kindle 原生书库直接点击 PDF 并交给 KOReader 打开，需要另行安装兼容的启动组件，例如 KPVBooklet。该启动组件不包含在本项目中，必须针对具体 Kindle 型号和固件单独安装、验收。如果这条路径不可用，仍可通过原有的 KUAL → KOReader 方式进入。
+插件本身不会创建 Kindle 原生主界面的独立 App 图标。v0.3.1-rc1 代码可以在 KOReader 打开指定 PDF 后尝试自动恢复学习进度。若希望从 Kindle 原生书库直接点击 PDF 并交给 KOReader 打开，需要另行安装兼容的启动组件，例如 KPVBooklet。该启动组件不包含在本项目中，必须针对具体 Kindle 型号和固件单独安装、验收。如果这条路径不可用，仍可通过原有的 KUAL → KOReader 方式进入。
 
 ### 回滚
 
