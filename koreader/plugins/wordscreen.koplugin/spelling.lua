@@ -78,6 +78,8 @@ end
 
 function S.endSession(p)
     p.spelling_active = false
+    p.spelling_transitioning = false
+    p.spelling_advance_token = (p.spelling_advance_token or 0) + 1
     p.spelling_status = ''
     p.spelling_guess = ''
     S.closeKeyboard(p)
@@ -122,6 +124,14 @@ function S.start(p, word, review)
         word = review_list[1]
     end
     p.spelling_active = true
+    p.spelling_transitioning = false
+    p.spelling_advance_token = (p.spelling_advance_token or 0) + 1
+    -- Stop any player timer again after spelling takes ownership. WordScreen
+    -- also guards tick()/turnWord(), covering callbacks already in the queue.
+    if p.task then UIManager:unschedule(p.task) end
+    if p.start_task then UIManager:unschedule(p.start_task) end
+    p.playing = false
+    p.mode = nil
     p.spelling_review = review or false
     p.spelling_review_list = review_list
     local starting = tonumber(word) or p:currentWordFromReader()
@@ -135,6 +145,12 @@ end
 
 function S.step(p, direction)
     if not p.spelling_active then return end
+    -- A swipe can be reported by more than one overlapping KOReader zone.
+    -- Lock navigation until the target page has settled and the keyboard opens.
+    if p.spelling_transitioning then return end
+    p.spelling_transitioning = true
+    p.spelling_advance_token = (p.spelling_advance_token or 0) + 1
+
     local current = p.spelling_word
     local new
     if p.spelling_review then
@@ -144,6 +160,7 @@ function S.step(p, direction)
             if errors[tostring(i)] and errors[tostring(i)].active then list[#list+1]=i end
         end
         if #list == 0 then
+            p.spelling_transitioning = false
             p.spelling_status = 'Mistakes cleared!'
             p:refreshHeart()
             p:notice('All pending mistakes cleared. Great work!')
@@ -159,15 +176,26 @@ function S.step(p, direction)
     else
         new = (current-1+direction)%p:wordCount()+1
     end
-    if loadWord(p,new) and not p.spelling_input then
-        -- The previous word may have closed the modal keyboard after a wrong
-        -- answer to release ReaderUI's swipe handler. Reopen it only after the
-        -- page/overlay have been updated for the new word.
-        UIManager:scheduleIn(0.15,function()
+
+    if not loadWord(p,new) then
+        p.spelling_transitioning = false
+        return
+    end
+
+    if not p.spelling_input then
+        -- Let ReaderUI finish the current swipe/GotoPage event before opening
+        -- the keyboard. Re-check the target so an obsolete callback cannot
+        -- reopen the keyboard for a stale word.
+        UIManager:scheduleIn(0.20,function()
             if p.spelling_active and p.spelling_word == new and not p.spelling_input then
+                p.spelling_transitioning = false
                 S.showKeyboard(p)
+            else
+                p.spelling_transitioning = false
             end
         end)
+    else
+        p.spelling_transitioning = false
     end
 end
 
@@ -209,8 +237,11 @@ function S.submit(p, typed)
         updateMistakeStreak(p,key,true)
         p:refreshHeart()
         -- Advance automatically after a short visual confirmation.
+        p.spelling_advance_token = (p.spelling_advance_token or 0) + 1
+        local token = p.spelling_advance_token
         UIManager:scheduleIn(0.45,function()
-            if p.spelling_active and p.spelling_word == tonumber(key) then
+            if p.spelling_active and p.spelling_word == tonumber(key)
+                and p.spelling_advance_token == token then
                 S.step(p,1)
             end
         end)

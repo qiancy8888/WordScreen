@@ -1,6 +1,6 @@
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 -- Copyright (C) 2026 qiancy8888
--- WordScreen for KOReader v0.4.3 (player + manual spelling mode)
+-- WordScreen for KOReader v0.4.5 (player + manual spelling mode)
 -- PDF format: odd page A/question, even page B/answer.
 -- Designed for a PDF opened directly by KOReader (e.g. KPVBooklet home-library entry).
 -- Does not modify system launchers or require launching KUAL.
@@ -144,7 +144,9 @@ end
 
 function WordScreen:arm(seconds)
     UIManager:unschedule(self.task)
-    if self.playing then UIManager:scheduleIn(seconds, self.task) end
+    if self.playing and not self.spelling_active then
+        UIManager:scheduleIn(seconds, self.task)
+    end
 end
 
 function WordScreen:gotoPage(page)
@@ -159,7 +161,9 @@ function WordScreen:drawCurrent()
 end
 
 function WordScreen:turnWord(step)
-    if not self:isSupported() then return end
+    -- Spelling mode owns page navigation exclusively. A delayed playback
+    -- callback must never move the PDF while a spelling session is active.
+    if self.spelling_active or not self:isSupported() then return end
     local count = self:wordCount()
     local current = self.playing and self.current_word or self:currentWordFromReader()
     if self.mode == "favorites" and self.favorites_list and #self.favorites_list > 0 then
@@ -180,6 +184,13 @@ function WordScreen:turnWord(step)
 end
 
 function WordScreen:tick()
+    -- Defensive guard against a playback timer that was already queued when
+    -- spelling mode took over. Do not let it flash the session's first pages.
+    if self.spelling_active then
+        self.playing = false
+        UIManager:unschedule(self.task)
+        return
+    end
     if not self.playing then return end
     local top = UIManager:getTopmostVisibleWidget()
     if not top or top.name ~= "ReaderUI" then
@@ -327,7 +338,7 @@ function WordScreen:init()
     self.current_file = self.ui.document and self.ui.document.file or nil
     self.task = function() self:tick() end
     self.start_task = function()
-        if self.playing then
+        if self.playing and not self.spelling_active then
             self:drawCurrent()
             self:arm(self.face == "B" and self.delay_b or self.delay_a)
         end
@@ -396,13 +407,18 @@ function WordScreen:onReaderReady()
             {
                 id = "wordscreen_swipe",
                 ges = "swipe",
-                screen_zone = { ratio_x = 0.02, ratio_y = 0.15, ratio_w = 0.96, ratio_h = 0.70 },
+                -- Full-screen coverage is intentional: the native paging zone
+                -- also covers the keyboard area. A swipe starting near the
+                -- bottom edge must not fall through to KOReader's page turner.
+                screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
                 overrides = { "paging_swipe", "rolling_swipe", "swipe_link" },
                 handler = function(ges)
                     if self.spelling_active then
                         if ges.direction == "west" then Spelling.step(self,1); return true end
                         if ges.direction == "east" then Spelling.step(self,-1); return true end
-                        return false
+                        -- Consume all swipes during spelling so native PDF
+                        -- paging cannot race the spelling word navigator.
+                        return true
                     end
                     if not self.playing then return false end
                     if ges.direction == "west" then
