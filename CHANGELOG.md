@@ -1,5 +1,18 @@
 # Changelog / 更新记录
 
+## 2026-11-07 — overnight playback test reported / 用户反馈整夜播放测试
+
+- The maintainer reports that a **local WordScreen test build ran overnight on Kindle PW1 + KOReader v2026.07.1 without entering the screensaver**.
+- This is a hardware observation **about the local test build**, not confirmation that the v0.3.0 source currently on GitHub contains the tested fix.
+- The exact tested Lua files/ZIP and code diff have **not yet been supplied**. Do not tag this repository as v0.3.1-beta or advertise a fixed public download until the tested source is imported and verified.
+- Stop/exit power-setting restoration, gesture responsiveness, and battery behavior after overnight playback still need separate checks.
+
+- 维护者反馈：本机 **Kindle PW1 + KOReader v2026.07.1** 上使用的一份 WordScreen 本地测试版**运行整夜未进入屏保**。
+- 该结论属于**本地测试版的实机观察**，不代表目前 GitHub 上的 v0.3.0 源码已经包含对应修复。
+- 尚未取得这份实际测试版的 Lua 源码/ZIP 及代码差异；在导入并验证之前，不应发布 v0.3.1-beta 正式安装包，也不能宣称仓库下载版已经修复。
+- 停止/退出后是否恢复休眠、操作是否持续响应、电池消耗情况仍需要单独验收。
+
+
 ## 2026-11-06 — public repository preparation / 公开仓库准备
 
 - Declared the WordScreen project license as GNU AGPL v3.0-or-later (`AGPL-3.0-or-later`).
