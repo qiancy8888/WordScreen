@@ -1,5 +1,18 @@
 # Testing status / 实机验收状态
 
+## 2026-11-07 — overnight-playback field report / 整夜播放现场反馈
+
+**Reported device / 设备：** Kindle Paperwhite 1 (PW1) running KOReader v2026.07.1.
+
+**Owner report / 用户反馈：** A locally installed WordScreen **test build** was left running overnight and **did not enter the screensaver**. Earlier playback had displayed a screensaver after roughly one hour and become unresponsive.
+
+**Provenance / 来源边界：** The actual test-build source/ZIP is **not yet available in this repository**. The checked-in `main.lua` remains the v0.3.0 preview implementation. This report is evidence for the behavior of the *local test build*, **not** a verified regression fix in the repository version.
+
+**Still to validate / 待验收：** Continued page advancement for the full night; swipe/heart responsiveness at the end of the run; restoring default Kindle screen-saver behavior after STOP / KOReader exit; battery consumption; repeatability on a subsequent night.
+
+**Release gate / 发布前提：** Acquire the exact installed `wordscreen.koplugin` files or installation ZIP, compare them against v0.3.0, review power-management cleanup behavior, then perform a fresh hardware run before publishing `v0.3.1-beta`.
+
+
 ## English
 
 This table separates owner-reported device observations from features present in the v0.3.0 source but not yet accepted on hardware.
