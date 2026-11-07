@@ -40,7 +40,7 @@ end
 
 function HeartOverlay:paintTo(bb, x, y)
     local plugin = self.plugin
-    if not plugin or not plugin:isSupported() then return end
+    if not plugin or not plugin:isSupported() or plugin.spelling_active then return end
 
     local word = plugin:getDisplayedWord()
     if not word then return end

@@ -3,7 +3,7 @@
 local _ = require("gettext")
 return {
     name = "wordscreen",
-    fullname = _("WordScreen – PDF Vocabulary"),
-    description = _("Two-page PDF vocabulary player with favorites and one-tap resume."),
-    version = "0.3.1-rc1",
+    fullname = _("WordScreen – Play & Spelling"),
+    description = _("Two-page PDF vocabulary player and manual spelling practice, with persistent mistakes."),
+    version = "0.4.3",
 }

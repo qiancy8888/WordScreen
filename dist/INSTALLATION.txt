@@ -1,23 +1,24 @@
 Copyright (C) 2026 qiancy8888
-WordScreen for KOReader v0.3.1-rc1 release candidate — install package
+WordScreen for KOReader v0.4.3 — integrated playback and spelling practice
 
 简体中文：
-1. 停止 WordScreen，完全退出 KOReader。
-2. 通过 USB 连接 Kindle，并备份现有 koreader/plugins/wordscreen.koplugin/ 文件夹。
-3. 将压缩包内 koreader/ 文件夹复制到 Kindle USB 根目录，允许合并/覆盖。
+1. 完全退出 KOReader。
+2. 通过 USB 连接 Kindle，备份 koreader/plugins/wordscreen.koplugin/ 和 koreader/settings/wordscreen_koreader.lua。
+3. 将本仓库或 GitHub 源码 ZIP 中的 koreader/ 文件夹复制到 Kindle USB 根目录，允许合并/覆盖。
 4. 安全弹出 Kindle，重新启动 KOReader。
-5. 打开符合每词两页格式的 PDF，在工具/更多工具中找到 WordScreen。
-6. 首次测试请关闭 KOReader 内置 AutoTurn。
+5. 打开原来的每词两页 PDF，在工具/更多工具中打开 WordScreen。
+6. 拼写模式只使用 B 页；键盘直接弹出；答对自动跳词；答错保存错题、显示答案，手动滑动继续。
+7. 不要删除 wordscreen_koreader.lua，其中保存收藏、播放设置和错题记录。无需替换 PDF。
 
 English:
-1. Stop WordScreen and completely exit KOReader.
-2. Connect the Kindle by USB and back up the existing koreader/plugins/wordscreen.koplugin/ folder.
-3. Copy the koreader/ folder from this archive to the Kindle USB root; merge/overwrite the plugin files.
+1. Completely exit KOReader.
+2. Connect the Kindle by USB. Back up koreader/plugins/wordscreen.koplugin/ and koreader/settings/wordscreen_koreader.lua.
+3. Copy the koreader/ folder from this repository or the GitHub source ZIP to the Kindle USB root; merge/overwrite.
 4. Safely eject the Kindle and restart KOReader.
-5. Open a PDF following the two-pages-per-word format and find WordScreen in Tools / More tools.
-6. Disable KOReader's built-in AutoTurn for the first test.
+5. Open the existing two-page-per-word PDF and find WordScreen in Tools / More tools.
+6. Spelling mode uses B pages only. The virtual keyboard appears directly; correct answers advance automatically; wrong answers are saved and revealed, then swipe manually to continue.
+7. Keep wordscreen_koreader.lua: it stores favorites, playback settings and spelling mistakes. The PDF does not need to be replaced.
 
-This is a release-candidate package. One overnight run on PW1 + KOReader v2026.07.1 was reported without screensaver activation. Verify normal sleep after STOP/exit, battery consumption, exact-page resume and native-home launch on your own device before relying on it.
-Do not delete koreader/settings/wordscreen_koreader.lua when updating; it stores favorites and resume settings.
+User-confirmed on Kindle Paperwhite 1 + KOReader 2026.07.1. Other device/firmware combinations are not yet declared compatible.
 
-License: GNU AGPL v3.0 or later (AGPL-3.0-or-later). The full LICENSE text is included in this archive.
+License: GNU AGPL v3.0 or later (AGPL-3.0-or-later).

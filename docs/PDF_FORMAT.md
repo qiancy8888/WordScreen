@@ -2,14 +2,12 @@
 
 ## English
 
-WordScreen uses a strict **two consecutive pages per word** sequence. It does not perform OCR, text extraction, semantic page detection or automatic layout recognition.
-
-### Page sequence
+WordScreen uses a strict **two consecutive pages per word** sequence.
 
 | PDF page | Face | Recommended content |
 |---|---|---|
-| 1, 3, 5... | A — Recall | English headword, phonetic transcription, part of speech if useful, one grayscale mnemonic illustration, and a short recall prompt such as “What does it mean?” |
-| 2, 4, 6... | B — Reveal | Chinese meaning, concise explanation, and one or more useful English example sentences with translations if desired |
+| 1, 3, 5... | A — Recall | English headword, phonetic transcription, part of speech if useful, grayscale mnemonic illustration and a recall prompt |
+| 2, 4, 6... | B — Reveal / Spelling | Selectable English headword near the top, illustration, Chinese meaning and optional example / word-origin content |
 
 The plugin maps pages as follows:
 
@@ -24,24 +22,23 @@ The plugin maps pages as follows:
 - Keep the order A then B for every word.
 - Use a consistent page size and orientation throughout the document.
 - Grayscale, high-contrast artwork is recommended for e-ink screens.
-- Leave clear space in the upper-right title area for the heart overlay. The current overlay is screen-relative, so the reserved area should be tested on the target device.
+- For spelling mode, the B-page English headword must be selectable PDF text (not just part of an image) and should be placed near the top of the page. The current parser looks for a Latin headword in the upper title region.
+- The current spelling overlay is designed for the supplied portrait PET layout at full-page zoom; other layouts need calibration.
 
 ### Important
 
-The plugin only checks the filename extension and even page count. A random even-page PDF can pass this basic check even if it is not a vocabulary book. Correct semantic ordering is the responsibility of the PDF author.
+Playback only needs the two-page sequence and an even page count. Spelling mode additionally extracts the B-page headword from PDF text; it does not OCR image-only headings. The plugin does not semantically validate arbitrary PDFs.
 
-Favorites are stored by PDF path and word index. Do not overwrite a file with a different word order at the same path unless you are willing to review or clear the old favorites.
+Favorites and spelling mistakes are stored by PDF path and word index. Do not overwrite a file with a different word order at the same path unless you are willing to review or clear old records.
 
 ## 简体中文
 
-WordScreen 使用严格的**每个单词连续两页**的顺序。插件不会进行 OCR、文字提取、语义识别或自动版式识别。
-
-### 页面顺序
+WordScreen 使用严格的**每个单词连续两页**的顺序。
 
 | PDF 页码 | 页面 | 建议内容 |
 |---|---|---|
-| 1、3、5…… | A 页——主动回忆 | 英文单词、音标、必要时的词性、一幅灰度记忆插图，以及“What does it mean?”之类的回忆提示 |
-| 2、4、6…… | B 页——揭晓答案 | 中文释义、简短解释，以及一条或多条实用英文例句；可附中文翻译 |
+| 1、3、5…… | A 页——主动回忆 | 英文单词、音标、必要时的词性、灰度记忆插图和回忆提示 |
+| 2、4、6…… | B 页——揭晓答案 / 拼写 | 页面上方保留可选择的英文单词文本，并包含插图、中文释义；例句和词源说明可按需保留 |
 
 插件按以下方式映射页面：
 
@@ -56,10 +53,11 @@ WordScreen 使用严格的**每个单词连续两页**的顺序。插件不会�
 - 每个单词必须先 A 页、后 B 页。
 - 全部页面应使用一致的尺寸和方向。
 - 电子墨水屏建议使用灰度、高对比度插图。
-- 标题右上方应预留红心覆盖层的位置。当前红心采用屏幕相对坐标，必须在目标设备上检查是否遮挡文字。
+- 拼写模式需要从 B 页提取英文标题，因此英文单词必须是可选择的 PDF 文本，不能只是图片的一部分，并建议放在页面上方。当前解析器会在标题区域寻找拉丁字母单词。
+- 当前拼写遮挡层针对原 PET 纵向版式的整页显示设计；其他版式需要重新校准。
 
 ### 重要说明
 
-插件只检查文件扩展名和 PDF 总页数是否为偶数。任意偶数页 PDF 都可能通过基础检查，即使它并不是单词本。页面语义和 A/B 顺序必须由单词本制作者保证。
+自动播放只要求 PDF 按每词两页排列且总页数为偶数。拼写模式还会从 B 页 PDF 文本中提取英文标题，不会对图片中的标题进行 OCR。插件不会对任意 PDF 进行语义校验。
 
-收藏按 PDF 文件路径和单词序号保存。如果在相同路径覆盖词序不同的新文件，旧收藏可能对应到错误单词；除非愿意重新检查或清空收藏，否则不要这样操作。
+收藏和错题按 PDF 文件路径及单词序号保存。如果在相同路径覆盖词序不同的新文件，旧记录可能对应到其他单词；除非愿意重新检查或清空记录，否则不要这样操作。

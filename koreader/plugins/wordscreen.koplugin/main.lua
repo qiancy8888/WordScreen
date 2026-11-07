@@ -1,6 +1,6 @@
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 -- Copyright (C) 2026 qiancy8888
--- WordScreen for KOReader v0.3.0 (PW1 native-home PDF shortcut + progress resume)
+-- WordScreen for KOReader v0.4.3 (player + manual spelling mode)
 -- PDF format: odd page A/question, even page B/answer.
 -- Designed for a PDF opened directly by KOReader (e.g. KPVBooklet home-library entry).
 -- Does not modify system launchers or require launching KUAL.
@@ -10,6 +10,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("luasettings")
 local UIManager = require("ui/uimanager")
 local HeartOverlay = require("heartoverlay")
+local Spelling = require("spelling")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local _ = require("gettext")
 
@@ -32,6 +33,8 @@ local WordScreen = WidgetContainer:extend{
     touch_registered = false,
     heart_overlay_registered = false,
     auto_start_scheduled = false,
+    spelling_active = false,
+    spelling_overlay_registered = false,
 }
 
 local function wordForPage(page)
@@ -95,7 +98,7 @@ function WordScreen:getFavoriteList()
 end
 
 function WordScreen:refreshHeart()
-    if self.heart_overlay and self.ui then
+    if self.ui then
         UIManager:setDirty(self.ui, "ui")
     end
 end
@@ -219,6 +222,7 @@ end
 
 -- Optional resume_page preserves A/B face exactly (e.g. page 326 = word 163 B).
 function WordScreen:start(mode, resume_page)
+    if self.spelling_active then Spelling.endSession(self) end
     if not self:isSupported() then
         self:notice("Requires an even-page PDF: two pages per word.")
         return
@@ -334,6 +338,7 @@ end
 function WordScreen:onReaderReady()
     if not self:isSupported() then return end
     self:registerHeartOverlay()
+    Spelling.init(self)
 
     if not self.touch_registered and self.ui.registerTouchZones then
         self.touch_registered = true
@@ -349,8 +354,43 @@ function WordScreen:onReaderReady()
                     "tap_top_right_corner", "tap_left_bottom_corner", "tap_right_bottom_corner",
                 },
                 handler = function()
-                    self:toggleFavorite()
+                    if self.spelling_active then
+                        Spelling.showKeyboard(self)
+                    else
+                        self:toggleFavorite()
+                    end
                     return true
+                end,
+            },
+            {
+                id = "wordscreen_spelling_tap",
+                ges = "tap",
+                screen_zone = {ratio_x=.08,ratio_y=.075,ratio_w=.76,ratio_h=.15},
+                overrides = {"tap_link","readerhighlight_tap","readermenu_tap","tap_forward","tap_backward"},
+                handler = function()
+                    if not self.spelling_active then return false end
+                    Spelling.showKeyboard(self)
+                    return true
+                end,
+            },
+            {
+                id = "wordscreen_spelling_input_tap",
+                ges = "tap",
+                screen_zone = {ratio_x=.14,ratio_y=.63,ratio_w=.72,ratio_h=.075},
+                overrides = {"tap_forward","tap_backward","readermenu_tap","readerhighlight_tap"},
+                handler = function()
+                    if not self.spelling_active then return false end
+                    Spelling.showKeyboard(self)
+                    return true
+                end,
+            },
+            {
+                id = "wordscreen_spelling_prevent_paging",
+                ges = "tap",
+                screen_zone = {ratio_x=0,ratio_y=.22,ratio_w=1,ratio_h=.78},
+                overrides = {"tap_forward","tap_backward"},
+                handler = function()
+                    return self.spelling_active == true
                 end,
             },
             {
@@ -359,6 +399,11 @@ function WordScreen:onReaderReady()
                 screen_zone = { ratio_x = 0.02, ratio_y = 0.15, ratio_w = 0.96, ratio_h = 0.70 },
                 overrides = { "paging_swipe", "rolling_swipe", "swipe_link" },
                 handler = function(ges)
+                    if self.spelling_active then
+                        if ges.direction == "west" then Spelling.step(self,1); return true end
+                        if ges.direction == "east" then Spelling.step(self,-1); return true end
+                        return false
+                    end
                     if not self.playing then return false end
                     if ges.direction == "west" then
                         self:turnWord(1)
@@ -380,7 +425,7 @@ function WordScreen:onReaderReady()
     if allowed and selected == self.current_file and not self.auto_start_scheduled then
         self.auto_start_scheduled = true
         UIManager:scheduleIn(0.5, function()
-            if self.ui and self.ui.document and not self.playing then
+            if self.ui and self.ui.document and not self.playing and not self.spelling_active then
                 self:resumeFromSavedPosition()
             end
         end)
@@ -393,6 +438,7 @@ function WordScreen:onCloseDocument()
     self.suspend_resume_mode = nil
     self.suspend_resume_page = nil
     self:saveProgress()
+    if self.spelling_active then Spelling.endSession(self) end
     self:stop(true)
 end
 
@@ -401,10 +447,15 @@ function WordScreen:onCloseWidget()
     self.suspend_resume_mode = nil
     self.suspend_resume_page = nil
     if self.playing then self:saveProgress() end
+    if self.spelling_active then Spelling.endSession(self) end
     self:stop(true)
 end
 
 function WordScreen:onSuspend()
+    if self.spelling_input then
+        UIManager:close(self.spelling_input)
+        self.spelling_input = nil
+    end
     if self.playing then
         self.suspend_resume_mode = self.mode or "all"
         self.suspend_resume_page = pageForWord(self.current_word, self.face)
@@ -434,9 +485,22 @@ end
 
 function WordScreen:addToMainMenu(menu_items)
     menu_items.wordscreen_pdf = {
-        text = "WordScreen - PDF Vocabulary",
+        text = "WordScreen - Play / Spelling",
         sorting_hint = "more_tools",
         sub_item_table = {
+            { text = "SPELLING: practice current word (B page only)", callback = function()
+                Spelling.start(self,self:currentWordFromReader(),false)
+            end },
+            { text = "SPELLING: start from first word", callback = function()
+                Spelling.start(self,1,false)
+            end },
+            { text_func = function() return "SPELLING: review mistakes ("..Spelling.pendingCount(self)..")" end,
+              callback = function() Spelling.start(self,1,true) end },
+            { text = "SPELLING: type remaining letters", callback = function() Spelling.showKeyboard(self) end },
+            { text = "SPELLING: show correct answer", callback = function() Spelling.showAnswer(self) end },
+            { text = "SPELLING: next word (manual)", callback = function() Spelling.step(self,1) end },
+            { text = "SPELLING: previous word (manual)", callback = function() Spelling.step(self,-1) end },
+            { text = "SPELLING: exit practice", callback = function() Spelling.endSession(self) end, separator = true },
             { text = "Resume HERE + enable home shortcut", callback = function()
                 self:start("all", self:readerPage())
             end },
